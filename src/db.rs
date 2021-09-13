@@ -22,7 +22,7 @@ pub fn get_posts() -> Vec<Post> {
     let connection = establish_connection();
 
     posts
-        .filter(published.eq(false))
+        .filter(published.eq(true))
         .limit(5)
         .load::<Post>(&connection)
         .expect("Error loading posts")
@@ -40,4 +40,25 @@ pub fn create_post<'a>(title: &'a str, body: &'a str) {
         .values(&new_post)
         .execute(&connection)
         .unwrap();
+}
+
+pub fn publish_post(publish_id: i32) {
+    use schema::posts::dsl::*;
+
+    let connection = establish_connection();
+
+    diesel::update(posts.find(publish_id))
+        .set(published.eq(true))
+        .execute(&connection)
+        .unwrap();
+}
+
+pub fn delete_by_pattern(pattern: &str) {
+    use schema::posts::dsl::*;
+
+    let connection = establish_connection();
+
+    diesel::delete(posts.filter(title.like(pattern)))
+        .execute(&connection)
+        .expect("Error deleting posts");
 }
